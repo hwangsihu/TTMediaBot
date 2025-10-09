@@ -49,10 +49,13 @@ def main(
 
 
 def echo_sound_devices(sound_device_manager: SoundDeviceManager) -> None:
-    for _i, _device in enumerate(sound_device_manager.output_devices):
-        pass
-    for _i, _device in enumerate(sound_device_manager.input_devices):
-        pass
+    print("Output devices:")
+    for i, device in enumerate(sound_device_manager.output_devices):
+        print("\t{index}: {name}".format(index=i, name=device.name))
+    print()
+    print("Input devices:")
+    for i, device in enumerate(sound_device_manager.input_devices):
+        print("\t{index}: {name}".format(index=i, name=device.name))
 
 
 if __name__ == "__main__":
