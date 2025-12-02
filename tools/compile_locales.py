@@ -14,16 +14,20 @@ locale_domain = "TTMediaBot"
 
 def extract() -> None:
     code = subprocess.call(  # noqa: S602
-        f"{babel_prefix} extract {' '.join(source_paths)} -o {pot_file_path} --keywords=translate -c translators: --copyright-holder=TTMediaBot-team --project=TTMediaBot",
+        f"{babel_prefix} extract {' '.join(source_paths)} -o {pot_file_path} "
+        f"--keywords=translate -c translators: "
+        f"--copyright-holder=TTMediaBot-team --project=TTMediaBot "
+        f"--sort-by-file",
         shell=True,
     )
     if code:
-        sys.exit("Bable is not installed. please install all the requirements")
+        sys.exit("Babel is not installed. Please install all the requirements")
 
 
 def update() -> None:
     code = subprocess.call(  # noqa: S602
-        f"{babel_prefix} update -i {pot_file_path} -d {locale_path} -D {locale_domain} --update-header-comment --previous",
+        f"{babel_prefix} update -i {pot_file_path} -d {locale_path} -D {locale_domain} "
+        f"--previous --ignore-obsolete --no-fuzzy-matching",
         shell=True,
     )
     if code:
@@ -32,7 +36,8 @@ def update() -> None:
 
 def compile_locales() -> None:
     code = subprocess.call(  # noqa: S602
-        f"{babel_prefix} compile -d {locale_path} -D {locale_domain}",
+        f"{babel_prefix} compile -d {locale_path} -D {locale_domain} "
+        f"--statistics --use-fuzzy",
         shell=True,
     )
     if code:
