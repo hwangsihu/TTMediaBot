@@ -18,6 +18,8 @@ class TTPlayerConnector(Thread):
         self.player = bot.player
         self.ttclient = bot.ttclient
         self.translator = bot.translator
+        self.alone_timer = None
+        self.alone_timer_started = False
 
     def run(self):
         last_player_state = State.Stopped
@@ -70,6 +72,34 @@ class TTPlayerConnector(Thread):
                             name=self.player.track.name,
                         )
                     )
+
+                if self.player.state == State.Playing:
+                    try:
+                        channel_id = self.ttclient.tt.getMyChannelID()
+                        users = self.ttclient.tt.getChannelUsers(channel_id)
+                        user_count = len(users)
+
+                        if user_count == 1:
+                            if not self.alone_timer_started:
+                                self.alone_timer = time.time()
+                                self.alone_timer_started = True
+                                logging.info("User is alone in channel. Starting 30-second timer before stopping playback.")
+                            elif time.time() - self.alone_timer >= 30:
+                                logging.info("30 seconds elapsed with only one user. Stopping playback.")
+                                self.player.stop()
+                                self.alone_timer = None
+                                self.alone_timer_started = False
+                        else:
+                            if self.alone_timer_started:
+                                logging.info("Other users joined. Resetting alone timer.")
+                                self.alone_timer = None
+                                self.alone_timer_started = False
+                    except Exception as e:
+                        logging.error(f"Error checking channel users: {e}", exc_info=True)
+                else:
+                    if self.alone_timer_started:
+                        self.alone_timer = None
+                        self.alone_timer_started = False
             except Exception:
                 logging.error("", exc_info=True)
             time.sleep(app_vars.loop_timeout)
