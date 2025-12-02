@@ -33,9 +33,9 @@ class YtService(_Service):
     def initialize(self) -> None:
         self._ydl_config = {
             "skip_download": True,
-            "format": "m4a/bestaudio/best[protocol!=m3u8_native]/best",
-            "socket_timeout": 5,
+            "format": "ba/b",
             "logger": logging.getLogger("root"),
+            "js_runtimes": {"node": {}},
         }
 
         if self.config.cookiefile_path and Path(self.config.cookiefile_path).is_file():
@@ -84,9 +84,17 @@ class YtService(_Service):
                 stream = ydl.process_ie_result(info)
             except Exception as e:
                 raise errors.ServiceError from e
+            url = None
             if "url" in stream:
                 url = stream["url"]
-            else:
+            elif "requested_formats" in stream and stream["requested_formats"]:
+                url = stream["requested_formats"][0].get("url")
+            elif "formats" in stream and stream["formats"]:
+                for fmt in stream["formats"]:
+                    if "url" in fmt:
+                        url = fmt["url"]
+                        break
+            if not url:
                 raise errors.ServiceError
             title = stream["title"]
             if "uploader" in stream:
@@ -105,7 +113,7 @@ class YtService(_Service):
             ]
 
     def search(self, query: str) -> list[Track]:
-        search = VideosSearch(query, limit=300).result()
+        search = VideosSearch(query, limit=10).result()
         if search["result"]:
             tracks: list[Track] = []
             for video in search["result"]:

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from bot import app_vars
 from bot.player import State
+from bot.TeamTalk.structs import MessageType
 
 if TYPE_CHECKING:
     from bot import Bot
@@ -19,6 +20,8 @@ class TTPlayerConnector(Thread):
         self.player = bot.player
         self.ttclient = bot.ttclient
         self.translator = bot.translator
+        self.alone_timer = None
+        self.alone_timer_started = False
 
     def run(self) -> None:
         last_player_state = State.Stopped
@@ -71,6 +74,39 @@ class TTPlayerConnector(Thread):
                             name=self.player.track.name,
                         ),
                     )
+
+                if self.player.state == State.Playing:
+                    try:
+                        channel_id = self.ttclient.tt.getMyChannelID()
+                        users = self.ttclient.tt.getChannelUsers(channel_id)
+                        user_count = len(users)
+
+                        if user_count == 1:
+                            if not self.alone_timer_started:
+                                self.alone_timer = time.time()
+                                self.alone_timer_started = True
+                                self.ttclient.send_message(
+                                    self.translator.translate("No other users detected. Playback will stop in 30 seconds."),
+                                    message_type=MessageType.Broadcast,
+                                )
+                            elif time.time() - self.alone_timer >= 30:
+                                self.ttclient.send_message(
+                                    self.translator.translate("Stopping playback due to no other users."),
+                                    message_type=MessageType.Broadcast,
+                                )
+                                self.player.stop()
+                                self.alone_timer = None
+                                self.alone_timer_started = False
+                        else:
+                            if self.alone_timer_started:
+                                self.alone_timer = None
+                                self.alone_timer_started = False
+                    except Exception as e:
+                        logging.error(f"Error checking channel users: {e}", exc_info=True)
+                else:
+                    if self.alone_timer_started:
+                        self.alone_timer = None
+                        self.alone_timer_started = False
             except Exception:
                 logging.exception("")
             time.sleep(app_vars.loop_timeout)
