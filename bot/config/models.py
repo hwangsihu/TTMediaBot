@@ -14,8 +14,8 @@ class GeneralModel(BaseModel):
 
 
 class SoundDevicesModel(BaseModel):
-    output_device: int = 0
-    input_device: int = 0
+    output_device: int | str = 0
+    input_device: int | str = 0
 
 
 class PlayerModel(BaseModel):

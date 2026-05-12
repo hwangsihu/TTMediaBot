@@ -5,23 +5,21 @@ description = "A bot for music streaming to TeamTalk Servers."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "babel>=2.17.0",
-    "beautifulsoup4>=4.13.4",
-    "httpx==0.27.0",
-    "mpv>=1.0.8",
-    "patool>=4.0.1",
-    "portalocker>=3.1.1",
-    "pydantic>=2.11.4",
-    "pyshorteners>=1.0.1",
-    "requests>=2.32.3",
-    "vk-api>=11.9.9",
-    "yandex-music>=2.2.0",
-    "youtube-search-python>=1.6.6",
-    "yt-dlp>=2025.4.30",
+    "babel",
+    "beautifulsoup4",
+    "mpv",
+    "patool",
+    "portalocker",
+    "pydantic",
+    "pyshorteners",
+    "requests",
+    "vk-api",
+    "yandex-music",
+    "yt-dlp",
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.11.9", "vermin>=1.6.0"]
+dev = ["ruff", "vermin"]
 
 [tool.ruff]
 line-length = 88

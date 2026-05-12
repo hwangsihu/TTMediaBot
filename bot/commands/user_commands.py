@@ -45,6 +45,8 @@ class PlayPauseCommand(Command):
             )
             try:
                 track_list = self.service_manager.service.search(arg)
+                if not track_list:
+                    raise errors.NothingFoundError("")
                 if self.config.general.send_channel_messages:
                     self.run_async(
                         self.ttclient.send_message,

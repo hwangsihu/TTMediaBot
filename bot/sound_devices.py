@@ -26,29 +26,38 @@ class SoundDeviceType(Enum):
 class SoundDeviceManager:
     def __init__(self, bot: Bot) -> None:
         self.config = bot.config
-        self.output_device_index = self.config.sound_devices.output_device
-        self.input_device_index = self.config.sound_devices.input_device
+        self.output_device = self.config.sound_devices.output_device
+        self.input_device = self.config.sound_devices.input_device
         self.player = bot.player
         self.ttclient = bot.ttclient
         self.output_devices = self.player.get_output_devices()
         self.input_devices = self.ttclient.get_input_devices()
 
+    def _find_device(
+        self, key: int | str, devices: list[SoundDevice], label: str
+    ) -> SoundDevice:
+        if isinstance(key, int):
+            try:
+                return devices[key]
+            except IndexError:
+                error = f"Incorrect {label} device index: {key}"
+                logging.error(error)
+                sys.exit(error)
+        for device in devices:
+            if key in device.name:
+                return device
+        error = f"{label.capitalize()} device not found: {key}"
+        logging.error(error)
+        sys.exit(error)
+
     def initialize(self) -> None:
         logging.debug("Initializing sound devices")
-        try:
-            self.player.set_output_device(
-                str(self.output_devices[self.output_device_index].id),
-            )
-        except IndexError:
-            error = "Incorrect output device index: " + str(self.output_device_index)
-            logging.exception(error)
-            sys.exit(error)
-        try:
-            self.ttclient.set_input_device(
-                int(self.input_devices[self.input_device_index].id),
-            )
-        except IndexError:
-            error = "Incorrect input device index: " + str(self.input_device_index)
-            logging.exception(error)
-            sys.exit(error)
+        output = self._find_device(
+            self.output_device, self.output_devices, "output"
+        )
+        self.player.set_output_device(str(output.id))
+        input_ = self._find_device(
+            self.input_device, self.input_devices, "input"
+        )
+        self.ttclient.set_input_device(int(input_.id))
         logging.debug("Sound devices initialized")
